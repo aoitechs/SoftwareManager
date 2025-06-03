@@ -1,45 +1,40 @@
-name: Build Executable
+name: Build Windows Executable
 
-on: [push]  # 触发条件
+on:
+  push:
+    branches: [ main ]  # 只在 main 分支推送时触发
+  workflow_dispatch:    # 允许手动触发
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]  # 多平台构建
-    
+  build-windows:
+    runs-on: windows-latest  # 仅使用 Windows 环境
+
     steps:
-    - name: Checkout code
+    - name: 检出代码
       uses: actions/checkout@v4
 
-    - name: Set up Python
+    - name: 设置 Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
 
-    - name: Install dependencies
+    - name: 安装依赖
       run: |
         pip install pyinstaller
-        # 安装脚本依赖（示例）
-        pip install requests pandas
+        # 安装你的脚本依赖（按需修改）
+        pip install requests
 
-    - name: Install UPX (压缩工具)
+    - name: 打包可执行文件
       run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          sudo apt-get install upx -y
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          brew install upx
-        fi
-      if: matrix.os != 'windows-latest'  # Windows 版 PyInstaller 自带 UPX
+        pyinstaller --onefile --noconsole your_script.py
+        # 参数说明：
+        # --onefile    : 生成单个exe文件
+        # --noconsole  : 运行时不显示控制台窗口（GUI程序用）
+        # --icon=icon.ico : 添加图标（可选）
+        # --add-data "data;data" : 添加资源文件夹（可选）
 
-    - name: Build executable
-      run: |
-        pyinstaller --noconfirm build.spec  # 使用 spec 文件
-        # 或直接构建：pyinstaller --onefile --add-data "assets:assets" your_script.py
-
-    - name: Upload artifact
+    - name: 上传成品
       uses: actions/upload-artifact@v4
       with:
-        name: executable-${{ runner.os }}
-        path: dist/  # PyInstaller 输出目录
+        name: windows-executable
+        path: dist/  # 打包文件所在目录
