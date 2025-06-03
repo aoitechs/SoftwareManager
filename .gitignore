@@ -1,0 +1,22 @@
+# 忽略Software目录下的所有文件，但保留Software空文件夹
+
+Software/*
+!Software/.gitkeep
+
+# 忽略数据库文件
+software.db
+
+# Python缓存和其他文件
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# IDE配置
+.vscode/
+.idea/
+*.iml
+
+# 系统文件
+.DS_Store
+Thumbs.db
