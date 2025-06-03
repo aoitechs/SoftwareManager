@@ -1,0 +1,45 @@
+name: Build Executable
+
+on: [push]  # 触发条件
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]  # 多平台构建
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        pip install pyinstaller
+        # 安装脚本依赖（示例）
+        pip install requests pandas
+
+    - name: Install UPX (压缩工具)
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt-get install upx -y
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          brew install upx
+        fi
+      if: matrix.os != 'windows-latest'  # Windows 版 PyInstaller 自带 UPX
+
+    - name: Build executable
+      run: |
+        pyinstaller --noconfirm build.spec  # 使用 spec 文件
+        # 或直接构建：pyinstaller --onefile --add-data "assets:assets" your_script.py
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: executable-${{ runner.os }}
+        path: dist/  # PyInstaller 输出目录
